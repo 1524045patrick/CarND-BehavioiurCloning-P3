@@ -26,7 +26,7 @@ flags.DEFINE_integer('batch_size', 128, "The batch size.")
 
 ## IMPORT COLUMNS FROM driving_log.csv INTO LISTS ##
 colnames = ['center', 'left', 'right', 'steering', 'throttle', 'brake', 'speed']
-data = pandas.read_csv('/Users/patrickhentschel/Desktop/Selfdriving-Car-Simulator/data/driving_log.csv', skiprows=[0],
+data = pandas.read_csv('/data/driving_log.csv', skiprows=[0],
                        names=colnames)
 center = data.center.tolist()
 center_recover = data.center.tolist()
@@ -152,9 +152,9 @@ def ModelNvidia():
     # Training Architecture: inspired by NVIDIA architecture #
     from os import path
     from keras.models import load_model
-    if path.isfile("/Users/patrickhentschel/Documents/CarND-Behavioral-Cloning-P3-master/sol/model.h5"):
+    if path.isfile("/model.h5"):
         print("Loading previous Model with weights")
-        model = load_model("/Users/patrickhentschel/Documents/CarND-Behavioral-Cloning-P3-master/sol/model.h5")
+        model = load_model("/model.h5")
     else:
         input_shape = (64, 64, 3)
         model = Sequential()
