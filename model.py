@@ -26,7 +26,7 @@ flags.DEFINE_integer('batch_size', 128, "The batch size.")
 
 ## IMPORT COLUMNS FROM driving_log.csv INTO LISTS ##
 colnames = ['center', 'left', 'right', 'steering', 'throttle', 'brake', 'speed']
-data = pandas.read_csv('/data/driving_log.csv', skiprows=[0],
+data = pandas.read_csv('data/driving_log.csv', skiprows=[0],
                        names=colnames)
 center = data.center.tolist()
 center_recover = data.center.tolist()
