@@ -152,9 +152,9 @@ def ModelNvidia():
     # Training Architecture: inspired by NVIDIA architecture #
     from os import path
     from keras.models import load_model
-    if path.isfile("/model.h5"):
+    if path.isfile("./model.h5"):
         print("Loading previous Model with weights")
-        model = load_model("/model.h5")
+        model = load_model("./model.h5")
     else:
         input_shape = (64, 64, 3)
         model = Sequential()
