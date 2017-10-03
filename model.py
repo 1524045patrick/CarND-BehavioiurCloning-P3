@@ -19,7 +19,7 @@ FLAGS = flags.FLAGS
 
 # DEFINE FLAGS VARIABLES#
 flags.DEFINE_float('steering_adjustment', 0.27, "Adjustment angle.")
-flags.DEFINE_integer('epochs', 4, "The number of epochs.")
+flags.DEFINE_integer('epochs', 5, "The number of epochs.")
 flags.DEFINE_integer('batch_size', 128, "The batch size.")
 
 ### PART 1: DATA PREPARATION ###
@@ -161,11 +161,14 @@ def ModelNvidia():
         model.add(Lambda(lambda x: x / 255 - 0.5, input_shape=input_shape))
         model.add(Convolution2D(24, 5, 5, border_mode='valid', subsample=(2, 2)))
         model.add(Activation('relu'))
+        model.add(Dropout(0.4))
         model.add(Convolution2D(36, 5, 5, border_mode='valid', subsample=(2, 2)))
         model.add(Activation('relu'))
+        model.add(Dropout(0.4))
         model.add(Convolution2D(48, 5, 5, border_mode='valid', subsample=(2, 2)))
         model.add(Activation('relu'))
         model.add(Convolution2D(64, 3, 3, border_mode='same', subsample=(2, 2)))
+        model.add(Dropout(0.4))
         model.add(Activation('relu'))
         model.add(Convolution2D(64, 3, 3, border_mode='valid', subsample=(2, 2)))
         model.add(Activation('relu'))
