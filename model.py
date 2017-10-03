@@ -19,7 +19,7 @@ FLAGS = flags.FLAGS
 
 # DEFINE FLAGS VARIABLES#
 flags.DEFINE_float('steering_adjustment', 0.27, "Adjustment angle.")
-flags.DEFINE_integer('epochs', 27, "The number of epochs.")
+flags.DEFINE_integer('epochs', 4, "The number of epochs.")
 flags.DEFINE_integer('batch_size', 128, "The batch size.")
 
 ### PART 1: DATA PREPARATION ###
@@ -152,35 +152,31 @@ def ModelNvidia():
     # Training Architecture: inspired by NVIDIA architecture #
     from os import path
     from keras.models import load_model
-    if path.isfile("./model.h5"):
+    if path.isfile("./model2.h5"):
         print("Loading previous Model with weights")
         model = load_model("./model.h5")
     else:
         input_shape = (64, 64, 3)
         model = Sequential()
-        # model.add(Cropping2D(cropping=((50, 20), (0, 0)), input_shape=(160, 320, 3)))
         model.add(Lambda(lambda x: x / 255 - 0.5, input_shape=input_shape))
-        model.add(Convolution2D(24, 5, 5, border_mode='valid', subsample=(2, 2), W_regularizer=l2(0.001)))
+        model.add(Convolution2D(24, 5, 5, border_mode='valid', subsample=(2, 2)))
         model.add(Activation('relu'))
-        model.add(Convolution2D(36, 5, 5, border_mode='valid', subsample=(2, 2), W_regularizer=l2(0.001)))
+        model.add(Convolution2D(36, 5, 5, border_mode='valid', subsample=(2, 2)))
         model.add(Activation('relu'))
-        model.add(Convolution2D(48, 5, 5, border_mode='valid', subsample=(2, 2), W_regularizer=l2(0.001)))
+        model.add(Convolution2D(48, 5, 5, border_mode='valid', subsample=(2, 2)))
         model.add(Activation('relu'))
-        model.add(Convolution2D(64, 3, 3, border_mode='same', subsample=(2, 2), W_regularizer=l2(0.001)))
+        model.add(Convolution2D(64, 3, 3, border_mode='same', subsample=(2, 2)))
         model.add(Activation('relu'))
-        model.add(Convolution2D(64, 3, 3, border_mode='valid', subsample=(2, 2), W_regularizer=l2(0.001)))
+        model.add(Convolution2D(64, 3, 3, border_mode='valid', subsample=(2, 2)))
         model.add(Activation('relu'))
         model.add(Flatten())
-        model.add(Dense(80, W_regularizer=l2(0.001)))
+        model.add(Dense(80))
         model.add(Dropout(0.5))
-        model.add(Dense(40, W_regularizer=l2(0.001)))
-        model.add(Dropout(0.5))
-        model.add(Dense(16, W_regularizer=l2(0.001)))
-        model.add(Dropout(0.5))
-        model.add(Dense(10, W_regularizer=l2(0.001)))
-        model.add(Dense(1, W_regularizer=l2(0.001)))
+        model.add(Dense(40))
+        model.add(Dense(16))
+        model.add(Dense(10))
+        model.add(Dense(1))
         adam = Adam(lr=0.0001)
-        # test = Model(inputs=[], outputs=[])
         model.compile(optimizer=adam, loss='mse')
         model.summary()
     return model
@@ -198,9 +194,9 @@ def main(_):
     print('Done Training')
 
     model_json = model.to_json()
-    with open("model.json", "w") as json_file:
+    with open("/output/model.json", "w") as json_file:
         json_file.write(model_json)
-    model.save("model.h5")
+    model.save("/output/model.h5")
     print("Saved model to disk")
 
 
