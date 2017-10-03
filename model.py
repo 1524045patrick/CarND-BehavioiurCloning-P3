@@ -215,7 +215,8 @@ def ModelNvidia():
 
 
 # PART 3: TRAINING
-def main():
+"""Parameter is not used in this setup, but could be for passing arguments from the cmd"""
+def main(_):
     # log_dir customized for use in floydhub
     tensorboard = TensorBoard(log_dir='/output/logs', histogram_freq=2, write_graph=True, write_images=False)
     data_generator = generator_data(FLAGS.batch_size)
