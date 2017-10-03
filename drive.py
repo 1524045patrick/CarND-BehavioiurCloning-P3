@@ -63,7 +63,11 @@ def telemetry(sid, data):
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
+        """
+        This works, because image_array is always a single image
+        """
         image_array = crop_resize(image_array)
+        """resiting the image to be able to go through the neural network"""
         steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
         throttle = controller.update(float(speed))
         print(steering_angle, throttle)
