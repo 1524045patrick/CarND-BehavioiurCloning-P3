@@ -18,7 +18,7 @@ FLAGS = flags.FLAGS
 
 # DEFINE FLAGS VARIABLES#
 flags.DEFINE_float('steering_adjustment', 0.27, "Adjustment angle.")
-flags.DEFINE_integer('epochs', 5, "The number of epochs.")
+flags.DEFINE_integer('epochs', 3, "The number of epochs.")
 flags.DEFINE_integer('batch_size', 128, "The batch size.")
 
 # PART 1: Data Preprocessing
