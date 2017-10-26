@@ -18,8 +18,8 @@ FLAGS = flags.FLAGS
 
 # DEFINE FLAGS VARIABLES#
 flags.DEFINE_float('steering_adjustment', 0.27, "Adjustment angle.")
-flags.DEFINE_integer('epochs', 3, "The number of epochs.")
-flags.DEFINE_integer('batch_size', 128, "The batch size.")
+flags.DEFINE_integer('epochs', 9, "The number of epochs.")
+flags.DEFINE_integer('batch_size', 30, "The batch size.")
 
 # PART 1: Data Preprocessing
 
@@ -37,7 +37,7 @@ steering_recover = data.steering.tolist()
 
 #  Shuffle center and steering. Use 10% of central images and steering angles for validation.
 center, steering = shuffle(center, steering)
-center, X_valid, steering, y_valid = train_test_split(center, steering, test_size=0.10, random_state=100)
+center, X_valid, steering, y_valid = train_test_split(center, steering, test_size=0.10)
 
 # Filtering straight, left and right images
 d_straight, drive_left, drive_right = [], [], []
@@ -60,8 +60,8 @@ ds_size, dl_size, dr_size = len(d_straight), len(drive_left), len(drive_right)
 main_size = math.ceil(len(center_recover))
 l_xtra = ds_size - dl_size
 r_xtra = ds_size - dr_size
-indice_L = random.sample(range(main_size), l_xtra)
-indice_R = random.sample(range(main_size), r_xtra)
+indice_L = random.sample(range(int(main_size)), l_xtra)
+indice_R = random.sample(range(int(main_size)), r_xtra)
 
 """
 Filtering angles with lower values than -0.15 and add into drive left list with the difference from the 
