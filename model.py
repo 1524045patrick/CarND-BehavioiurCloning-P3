@@ -19,12 +19,12 @@ FLAGS = flags.FLAGS
 # DEFINE FLAGS VARIABLES#
 flags.DEFINE_float('steering_adjustment', 0.27, "Adjustment angle.")
 flags.DEFINE_integer('epochs', 9, "The number of epochs.")
-flags.DEFINE_integer('batch_size', 30, "The batch size.")
-
+flags.DEFINE_integer('batch_size', 30, "The batch size.")  # *10
 # PART 1: Data Preprocessing
 
 # importing columns from driving_log
-colnames = ['center', 'left', 'right', 'steering', 'throttle', 'brake', 'speed']
+colnames = ['center', 'left', 'right',
+            'steering', 'throttle', 'brake', 'speed']
 data = pandas.read_csv('data/driving_log.csv', skiprows=[0],
                        names=colnames)
 
@@ -37,7 +37,8 @@ steering_recover = data.steering.tolist()
 
 #  Shuffle center and steering. Use 10% of central images and steering angles for validation.
 center, steering = shuffle(center, steering)
-center, X_valid, steering, y_valid = train_test_split(center, steering, test_size=0.10)
+center, X_valid, steering, y_valid = train_test_split(
+    center, steering, test_size=0.10)
 
 # Filtering straight, left and right images
 d_straight, drive_left, drive_right = [], [], []
@@ -64,8 +65,8 @@ indice_L = random.sample(range(int(main_size)), l_xtra)
 indice_R = random.sample(range(int(main_size)), r_xtra)
 
 """
-Filtering angles with lower values than -0.15 and add into drive left list with the difference from the 
-adjustment angle. Other values which are bigger than 0.15 will be added into the drive right list with the sum 
+Filtering angles with lower values than -0.15 and add into drive left list with the difference from the
+adjustment angle. Other values which are bigger than 0.15 will be added into the drive right list with the sum
 from the adjustment angle and the steering angle
 """
 for i in indice_L:
@@ -113,7 +114,7 @@ def flip(image, angle):
 
 """
 Not wanting to resize (preprocess) the data inside the neural network this function was created
-it only keeps the wanted mask of the image (without parts of the car) and then uses the resize 
+it only keeps the wanted mask of the image (without parts of the car) and then uses the resize
 function of opencv to get needed shape for the neural network (64,64)
 """
 
@@ -141,11 +142,14 @@ def generator_data(batch_size):
         data, angle = shuffle(X_train, y_train)
         for i in range(batch_size):
             choice = int(np.random.choice(len(data), 1))
-            batch_train[i] = crop_resize(random_brightness(mpimg.imread(data[choice].strip())))
-            batch_angle[i] = angle[choice] * (1 + np.random.uniform(-0.10, 0.10))
+            batch_train[i] = crop_resize(random_brightness(
+                mpimg.imread(data[choice].strip())))
+            batch_angle[i] = angle[choice] * \
+                             (1 + np.random.uniform(-0.10, 0.10))
             flip_coin = random.randint(0, 1)
             if flip_coin == 1:
-                batch_train[i], batch_angle[i] = flip(batch_train[i], batch_angle[i])
+                batch_train[i], batch_angle[i] = flip(
+                    batch_train[i], batch_angle[i])
 
         yield batch_train, batch_angle
 
@@ -214,17 +218,53 @@ def ModelNvidia():
     return model
 
 
+def testModel():
+    from os import path
+    from keras import regularizers
+    from keras.models import load_model
+    from keras.activations import relu
+    from keras.layers import Conv2D
+    if path.isfile("./model.h5"):
+        print("Loading previous Model with weights")
+        model = load_model("./model.h5")
+    else:
+        input_shape = (64, 64, 3)
+        model = Sequential()
+        model.add(Lambda(lambda x: x / 255 - 0.5, input_shape=input_shape))
+        model.add(
+            Conv2D(24, (5, 5), activation=relu, padding='valid', strides=(2, 2), kernel_regularizer=regularizers.l2))
+        model.add(Dropout(0.4))
+        model.add(
+            Conv2D(36, (5, 5), activation=relu, padding='valid', strides=(2, 2), kernel_regularizer=regularizers.l2))
+        model.add(Dropout(0.4))
+        model.add(
+            Conv2D(48, (3, 3), activation=relu, padding='valid', strides=(2, 2), kernel_regularizer=regularizers.l2)
+        model.add(Dense(60))
+        model.add(Dropout(rate=0.4))
+        model.add(Dense(10))
+        model.add(Dropout(0.4))
+        model.add(Dense(1))
+        adam = Adam(lr=0.0001))
+        model.compile(optimizer=adam, loss='mse')
+        model.summary()
+    return model
+
+
 # PART 3: TRAINING
 """Parameter is not used in this setup, but could be for passing arguments from the cmd"""
+
+
 def main(_):
     # log_dir customized for use in floydhub
-    tensorboard = TensorBoard(log_dir='/output/logs', histogram_freq=2, write_graph=True, write_images=False)
+    tensorboard = TensorBoard(
+        log_dir='/output/logs', histogram_freq=2, write_graph=True, write_images=False)
     data_generator = generator_data(FLAGS.batch_size)
     valid_generator = generator_valid(X_valid, y_valid, FLAGS.batch_size)
-    model = ModelNvidia()
+    model = testModel()
     model.fit_generator(data_generator, steps_per_epoch=(math.ceil(len(X_train) / FLAGS.batch_size)),
                         nb_epoch=FLAGS.epochs,
-                        validation_data=valid_generator, validation_steps=(len(X_valid) / FLAGS.batch_size),
+                        validation_data=valid_generator, validation_steps=(
+            len(X_valid) / FLAGS.batch_size),
                         callbacks=[tensorboard])
     print('Done Training')
 
