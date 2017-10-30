@@ -7,19 +7,22 @@ from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten, Dropout, Lambda
+from keras.layers import Dense, Activation, Flatten, Dropout, Lambda, Conv2D
 from keras.layers.convolutional import Convolution2D
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
 import math
+from keras.layers import Cropping2D
+from os import path
+from keras.models import load_model
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
 
 # DEFINE FLAGS VARIABLES#
 flags.DEFINE_float('steering_adjustment', 0.27, "Adjustment angle.")
-flags.DEFINE_integer('epochs', 9, "The number of epochs.")
-flags.DEFINE_integer('batch_size', 30, "The batch size.")  # *10
+flags.DEFINE_integer('epochs', 20, "The number of epochs.")
+flags.DEFINE_integer('batch_size', 50, "The batch size.")
 # PART 1: Data Preprocessing
 
 # importing columns from driving_log
@@ -183,8 +186,6 @@ Dropout-Layers where moved into the Conv2D calls, to prevent overfitting on the 
 
 
 def ModelNvidia():
-    from os import path
-    from keras.models import load_model
     if path.isfile("./model.h5"):
         print("Loading previous Model with weights")
         model = load_model("./model.h5")
@@ -218,56 +219,28 @@ def ModelNvidia():
     return model
 
 
-def testModel():
-    from os import path
-    from keras import regularizers
-    from keras.models import load_model
-    from keras.activations import relu
-    from keras.layers import Conv2D
-    if path.isfile("./model.h5"):
-        print("Loading previous Model with weights")
-        model = load_model("./model.h5")
-    else:
-        input_shape = (64, 64, 3)
-        model = Sequential()
-        model.add(Lambda(lambda x: x / 255 - 0.5, input_shape=input_shape))
-        model.add(
-            Conv2D(24, (5, 5), activation=relu, padding='valid', strides=(2, 2), kernel_regularizer=regularizers.l2))
-        model.add(Dropout(0.4))
-        model.add(
-            Conv2D(36, (5, 5), activation=relu, padding='valid', strides=(2, 2), kernel_regularizer=regularizers.l2))
-        model.add(Dropout(0.4))
-        model.add(
-            Conv2D(48, (3, 3), activation=relu, padding='valid', strides=(2, 2), kernel_regularizer=regularizers.l2)
-        model.add(Dense(60))
-        model.add(Dropout(rate=0.4))
-        model.add(Dense(10))
-        model.add(Dropout(0.4))
-        model.add(Dense(1))
-        adam = Adam(lr=0.0001))
-        model.compile(optimizer=adam, loss='mse')
-        model.summary()
-    return model
-
-
 # PART 3: TRAINING
 """Parameter is not used in this setup, but could be for passing arguments from the cmd"""
 
 
 def main(_):
     # log_dir customized for use in floydhub
+    from keras.callbacks import ModelCheckpoint, EarlyStopping
     tensorboard = TensorBoard(
         log_dir='/output/logs', histogram_freq=2, write_graph=True, write_images=False)
+    checkpoints = ModelCheckpoint(
+        "/output/weights.{epoch:02d}--{val_loss:.2f}.h5", monitor='val_loss', period=1, verbose=1)
+    earlyStopper = EarlyStopping(monitor='val_loss', min_delta=0)
     data_generator = generator_data(FLAGS.batch_size)
     valid_generator = generator_valid(X_valid, y_valid, FLAGS.batch_size)
-    model = testModel()
+    model = ModelNvidia()
     model.fit_generator(data_generator, steps_per_epoch=(math.ceil(len(X_train) / FLAGS.batch_size)),
                         nb_epoch=FLAGS.epochs,
                         validation_data=valid_generator, validation_steps=(
             len(X_valid) / FLAGS.batch_size),
-                        callbacks=[tensorboard])
+                        callbacks=[tensorboard, checkpoints, earlyStopper])
     print('Done Training')
-
+    print("Best run ", checkpoints.best)
     model_json = model.to_json()
     with open("/output/model.json", "w") as json_file:
         json_file.write(model_json)

@@ -12,10 +12,13 @@ var
 *.pyc
 *.swp
 .DS_Store
-model.h5
-model.json
 drive.py
 video.py
 writeup_template.md
-logs
 examples
+*.mp4
+*.md
+*.PNG
+*.gitignore
+drive.py
+driving_log_UdacityData.csv
